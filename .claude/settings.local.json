@@ -1,7 +1,19 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Read(//tmp/**)",
+      "Bash(python -)",
+      "Bash(node -e \":*)",
+      "Bash(find '/c/Users/beine/OneDrive/Desktop/my docs/pod-check' -name *.css -o -name JoinPage.jsx)",
+      "Bash(mkdir -p \"/c/Users/beine/OneDrive/Desktop/my docs/life-check/src/lib\")",
+      "Bash(mkdir -p \"/c/Users/beine/OneDrive/Desktop/my docs/life-check/src/pages\")",
+      "Bash(npm install:*)",
+      "Bash(mkdir -p \"/c/Users/beine/OneDrive/Desktop/my docs/deck-swipe/src/lib\")",
+      "Bash(mkdir -p \"/c/Users/beine/OneDrive/Desktop/my docs/deck-swipe/src/pages\")",
+      "Bash(gh repo:*)",
+      "Bash(where gh:*)",
+      "Bash(powershell -Command \"Get-Command gh -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")"
     ]
   }
 }

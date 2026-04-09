@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase.js";
-import { COLORS, BRACKET_META, PageWrapper, ScryCheckCredit, Logo } from "../lib/ui.jsx";
+import { COLORS, BRACKET_META, PageWrapper, ScryCheckCredit, Logo, SessionCodeCard } from "../lib/ui.jsx";
 
 const STATUS_COLORS = {
   empty: "#334155", pending: "#60a5fa", analyzing: "#fbbf24", ready: "#34d399",
@@ -185,42 +185,8 @@ export default function HostPage() {
             <div style={{ fontSize: 10, color: "#475569", letterSpacing: 2, textAlign: "center", marginBottom: 10 }}>
               {allReady ? "SESSION CODE" : "SHARE THIS CODE WITH YOUR POD"}
             </div>
-            <div
-              onClick={() => navigator.clipboard?.writeText(sessionId)}
-              style={{
-                background: "rgba(167,139,250,0.08)",
-                border: "2px solid rgba(167,139,250,0.25)",
-                borderRadius: 16,
-                padding: "16px 28px",
-                cursor: "pointer",
-                textAlign: "center",
-                width: "100%",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 4 }}>
-                <div style={{
-                  fontSize: 9, letterSpacing: 2, fontWeight: 700,
-                  color: session.mode === 'lifetrack' ? "#34d399" : "#a78bfa",
-                  background: session.mode === 'lifetrack' ? "rgba(52,211,153,0.12)" : "rgba(167,139,250,0.12)",
-                  border: `1px solid ${session.mode === 'lifetrack' ? "rgba(52,211,153,0.3)" : "rgba(167,139,250,0.3)"}`,
-                  borderRadius: 6, padding: "2px 8px",
-                }}>
-                  {session.mode === 'lifetrack' ? 'LIFE TRACK' : 'POD CHECK'}
-                </div>
-              </div>
-              <div style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: 52,
-                letterSpacing: 10,
-                color: "#a78bfa",
-                lineHeight: 1,
-                paddingLeft: 10,
-              }}>
-                {sessionId}
-              </div>
-              <div style={{ fontSize: 10, color: "#475569", letterSpacing: 2, marginTop: 6 }}>
-                TAP TO COPY
-              </div>
+            <div onClick={() => navigator.clipboard?.writeText(sessionId)} style={{ cursor: "pointer" }}>
+              <SessionCodeCard sessionId={sessionId} />
             </div>
 
             {!allReady && (

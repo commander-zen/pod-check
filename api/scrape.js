@@ -48,12 +48,22 @@ export default async function handler(req, res) {
   }
 }
 
+function decodeEntities(str) {
+  if (!str) return str;
+  return str
+    .replace(/&#x27;/g, "'").replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)));
+}
+
 function parseDeckPage(html, url) {
   // ── Commander name ──────────────────────────────────────────────────────
   // Title format: "Commander Name — Power X.X | ScryCheck"
   const titleMatch = html.match(/<title>([^<]+?)\s*(?:—|–|-)\s*Power/i);
   const h1Match = html.match(/<h1[^>]*>\s*([^<]+?)\s*<\/h1>/i);
-  const commander = titleMatch?.[1]?.trim() || h1Match?.[1]?.trim() || "Unknown Commander";
+  let commander = titleMatch?.[1]?.trim() || h1Match?.[1]?.trim() || "Unknown Commander";
+  // Decode HTML entities and strip trailing " Commander Deck Analysis" suffix
+  commander = decodeEntities(commander).replace(/\s*Commander Deck Analysis.*$/i, "").trim();
 
   // ── Power level ─────────────────────────────────────────────────────────
   // Title format is always "Commander Name — Power 4.6 | ScryCheck"

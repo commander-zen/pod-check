@@ -11,11 +11,11 @@ export default function LandingPage() {
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState(null);
 
-  const createSession = useCallback(async (mode = 'podcheck') => {
+  const createSession = useCallback(async () => {
     setCreating(true); setError(null);
     try {
       const id = makeSessionId();
-      const data = newSession(id, mode);
+      const data = newSession(id, 'podcheck');
       const { error: err } = await supabase.from("sessions").insert({ id, data });
       if (err) throw err;
       navigate(`/host/${id}`);
@@ -56,7 +56,7 @@ export default function LandingPage() {
           <div style={{ width: "100%" }}>
             {error && <div style={{ color: "#f87171", fontSize: 12, marginBottom: 10, textAlign: "center" }}>{error}</div>}
             <button
-              onClick={() => createSession('podcheck')}
+              onClick={() => createSession()}
               disabled={creating}
               style={{
                 width: "100%", background: "#a78bfa", border: "none", borderRadius: 12,
@@ -68,20 +68,6 @@ export default function LandingPage() {
             >
               <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: 1 }}>POD CHECK</div>
               <div style={{ fontSize: 11, fontWeight: 400, opacity: 0.65, marginTop: 2 }}>balance your pod</div>
-            </button>
-            <button
-              onClick={() => createSession('lifetrack')}
-              disabled={creating}
-              style={{
-                width: "100%", background: "transparent", border: "1px solid #a78bfa", borderRadius: 12,
-                padding: "14px 16px", fontFamily: "'DM Mono', monospace",
-                color: "#a78bfa", cursor: creating ? "wait" : "pointer",
-                opacity: creating ? 0.7 : 1, transition: "opacity 0.2s",
-                marginTop: 8, textAlign: "left",
-              }}
-            >
-              <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: 1 }}>LIFE TRACK</div>
-              <div style={{ fontSize: 11, fontWeight: 400, opacity: 0.65, marginTop: 2 }}>just track life</div>
             </button>
           </div>
 
