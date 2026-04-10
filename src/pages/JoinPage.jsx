@@ -61,7 +61,7 @@ function StepBar({ current, total }) {
       {Array.from({ length: total }).map((_, i) => (
         <div key={i} style={{
           flex: 1, height: 3, borderRadius: 2,
-          background: i < current ? "#b8a8d8" : "rgba(26,28,46,0.2)",
+          background: i < current ? "#b8a8d8" : "rgba(255,255,255,0.1)",
           transition: "background 0.3s",
         }} />
       ))}
@@ -84,19 +84,18 @@ function BigVerdict({ players }) {
   let verdict, sub, color, emoji, bg;
   if (spread <= 0.8 && bracketSpread <= 1) {
     verdict = "FAIR GAME"; sub = "Power levels are well matched. Good game ahead.";
-    color = "#5aaa88"; emoji = "⚖️"; bg = "rgba(90,170,136,0.1)";
+    color = "#5aaa88"; emoji = "⚖️"; bg = "rgba(90,170,136,0.08)";
   } else if (spread <= 1.5 || bracketSpread <= 1) {
     verdict = "SLIGHT GAP"; sub = "Minor power difference — totally playable, just worth noting.";
-    color = "#c4915a"; emoji = "🟡"; bg = "rgba(196,145,90,0.1)";
+    color = "#c4915a"; emoji = "🟡"; bg = "rgba(196,145,90,0.08)";
   } else if (spread <= 2.5) {
     verdict = "NOTABLE MISMATCH"; sub = "Real bracket difference. Have a quick conversation before you play.";
-    color = "#c4915a"; emoji = "⚠️"; bg = "rgba(196,145,90,0.1)";
+    color = "#c4915a"; emoji = "⚠️"; bg = "rgba(196,145,90,0.08)";
   } else {
     verdict = "BAD IDEA"; sub = "Significant power gap. Someone should grab a different deck.";
-    color = "#c45c6a"; emoji = "🔴"; bg = "rgba(196,92,106,0.1)";
+    color = "#c45c6a"; emoji = "🔴"; bg = "rgba(196,92,106,0.08)";
   }
 
-  // Online players sorted by power, offline players appended at end
   const ranked = [
     ...online.sort((a, b) => b.deckData.power - a.deckData.power),
     ...allReady.filter(p => p.deckData?.power == null),
@@ -107,15 +106,15 @@ function BigVerdict({ players }) {
       <div style={{ background: bg, border: `2px solid ${color}40`, borderRadius: 20, padding: "28px 20px", textAlign: "center", marginBottom: 16 }}>
         <div style={{ fontSize: 44, marginBottom: 10 }}>{emoji}</div>
         <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 48, letterSpacing: 4, color, lineHeight: 1, marginBottom: 10 }}>{verdict}</div>
-        <div style={{ fontSize: 13, color: "#aab0c7", lineHeight: 1.6, maxWidth: 280, margin: "0 auto 16px" }}>{sub}</div>
+        <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6, maxWidth: 280, margin: "0 auto 16px" }}>{sub}</div>
         <div style={{ display: "flex", justifyContent: "center", gap: 24 }}>
           <StatBox label="AVG POWER" value={avg} color={color} />
           <StatBox label="SPREAD" value={spread.toFixed(1)} color={color} />
           {bracketSpread > 0 && <StatBox label="BRACKET GAP" value={bracketSpread} color={color} />}
         </div>
       </div>
-      <div style={{ background: "rgba(26,28,46,0.15)", border: "1px solid rgba(26,28,46,0.2)", borderRadius: 14, padding: 14, marginBottom: 16 }}>
-        <div style={{ fontSize: 10, color: "#8890b0", letterSpacing: 2, marginBottom: 10 }}>POWER RANKING</div>
+      <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: 14, marginBottom: 16 }}>
+        <div style={{ fontSize: 10, color: "#475569", letterSpacing: 2, marginBottom: 10 }}>POWER RANKING</div>
         {ranked.map((p, rank) => {
           const oi = players.indexOf(p);
           const c = COLORS[oi];
@@ -125,18 +124,18 @@ function BigVerdict({ players }) {
           const bMeta = p.deckData?.bracket ? BRACKET_META[p.deckData.bracket] : null;
           return (
             <div key={oi} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <div style={{ fontSize: 10, color: "#8890b0", width: 14, textAlign: "right" }}>{hasPower ? rank + 1 : "·"}</div>
-              <div style={{ fontSize: 12, color: isOffline ? "#8890b0" : c, width: 90, flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div style={{ fontSize: 10, color: "#475569", width: 14, textAlign: "right" }}>{hasPower ? rank + 1 : "·"}</div>
+              <div style={{ fontSize: 12, color: isOffline ? "#475569" : c, width: 90, flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {p.deckData?.commander || p.name || `P${oi + 1}`}
                 {isOffline
-                  ? <span style={{ fontSize: 9, color: "#3d3f5a", marginLeft: 4 }}>· self-reported</span>
-                  : p.deckData?.selfReported && <span style={{ fontSize: 9, color: "#8890b0", marginLeft: 4 }}>· self-reported</span>
+                  ? <span style={{ fontSize: 9, color: "#334155", marginLeft: 4 }}>· self-reported</span>
+                  : p.deckData?.selfReported && <span style={{ fontSize: 9, color: "#475569", marginLeft: 4 }}>· self-reported</span>
                 }
               </div>
-              <div style={{ flex: 1, background: "rgba(26,28,46,0.15)", borderRadius: 3, height: 5, overflow: "hidden" }}>
+              <div style={{ flex: 1, background: "rgba(255,255,255,0.06)", borderRadius: 3, height: 5, overflow: "hidden" }}>
                 {hasPower && <div style={{ width: `${pct}%`, height: "100%", background: c, borderRadius: 3 }} />}
               </div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: hasPower ? c : "#3d3f5a", width: 30, textAlign: "right" }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: hasPower ? c : "#334155", width: 30, textAlign: "right" }}>
                 {hasPower ? p.deckData.power.toFixed(1) : "—"}
               </div>
               {bMeta && <div style={{ fontSize: 10, color: bMeta.color, width: 28, textAlign: "right" }}>B{p.deckData.bracket}</div>}
@@ -151,12 +150,11 @@ function BigVerdict({ players }) {
 function StatBox({ label, value, color }) {
   return (
     <div>
-      <div style={{ fontSize: 10, color: "#8890b0", letterSpacing: 2 }}>{label}</div>
+      <div style={{ fontSize: 10, color: "#475569", letterSpacing: 2 }}>{label}</div>
       <div style={{ fontSize: 22, fontWeight: 800, color }}>{value}</div>
     </div>
   );
 }
-
 
 // ─── MTGFact ─────────────────────────────────────────────────────────────────
 function MtgFact() {
@@ -176,16 +174,11 @@ function MtgFact() {
 
   return (
     <div style={{
-      maxWidth: 320,
-      margin: "0 auto 28px",
-      padding: "14px 18px",
-      background: "rgba(76,129,156,0.1)",
-      border: "1px solid rgba(76,129,156,0.2)",
-      borderRadius: 12,
-      opacity: visible ? 1 : 0,
-      transition: "opacity 0.5s ease",
+      maxWidth: 320, margin: "0 auto 28px", padding: "14px 18px",
+      background: "rgba(76,129,156,0.06)", border: "1px solid rgba(76,129,156,0.15)",
+      borderRadius: 12, opacity: visible ? 1 : 0, transition: "opacity 0.5s ease",
     }}>
-      <div style={{ fontSize: 12, color: "#3d3f5a", lineHeight: 1.7 }}>
+      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>
         {MTG_FACTS[index]}
       </div>
     </div>
@@ -194,7 +187,7 @@ function MtgFact() {
 
 // ─── LobbyStatus ──────────────────────────────────────────────────────────────
 const STATUS_META = {
-  empty:     { text: "Empty",     color: "#3d3f5a" },
+  empty:     { text: "Empty",     color: "#334155" },
   pending:   { text: "Joined",    color: "#7ba7bb" },
   analyzing: { text: "Analyzing", color: "#c4915a" },
   ready:     { text: "Ready ✓",   color: "#5aaa88" },
@@ -202,19 +195,19 @@ const STATUS_META = {
 
 function LobbyStatus({ session, mySeat }) {
   return (
-    <div style={{ background: "rgba(26,28,46,0.15)", border: "1px solid rgba(26,28,46,0.15)", borderRadius: 14, padding: 16, marginTop: 20 }}>
-      <div style={{ fontSize: 10, color: "#8890b0", letterSpacing: 2, marginBottom: 10 }}>POD STATUS</div>
+    <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16, marginTop: 20 }}>
+      <div style={{ fontSize: 10, color: "#475569", letterSpacing: 2, marginBottom: 10 }}>POD STATUS</div>
       {session.players.map((p, i) => {
         const s = STATUS_META[p.status];
         return (
-          <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 0", borderBottom: i < 3 ? "1px solid rgba(26,28,46,0.1)" : "none" }}>
+          <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 0", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ width: 7, height: 7, borderRadius: "50%", background: COLORS[i], opacity: p.status === "empty" ? 0.2 : 1 }} />
-              <span style={{ fontSize: 12, color: i === mySeat ? COLORS[i] : p.status === "empty" ? "#3d3f5a" : "#aab0c7" }}>
+              <span style={{ fontSize: 12, color: i === mySeat ? COLORS[i] : p.status === "empty" ? "#334155" : "#94a3b8" }}>
                 {p.name || `Seat ${i + 1}`}{i === mySeat && <span style={{ opacity: 0.5 }}> (you)</span>}
               </span>
             </div>
-            <div style={{ fontSize: 10, color: s?.color ?? "#3d3f5a", letterSpacing: 1, display: "flex", alignItems: "center", gap: 5 }}>
+            <div style={{ fontSize: 10, color: s?.color ?? "#334155", letterSpacing: 1, display: "flex", alignItems: "center", gap: 5 }}>
               {p.status === "analyzing" && <div style={{ width: 7, height: 7, border: "1.5px solid currentColor", borderTop: "1.5px solid transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />}
               {s?.text ?? "Empty"}
             </div>
@@ -263,8 +256,8 @@ function CommanderSearch({ onSelect, color }) {
 
   return (
     <div style={{ animation: "fadeUp 0.4s ease both" }}>
-      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 32, letterSpacing: 3, color: "var(--pc-textPrimary)", marginBottom: 12, lineHeight: 1.1 }}>WHO'S YOUR COMMANDER?</div>
-      <div style={{ fontSize: 13, color: "var(--pc-textSecondary)", lineHeight: 1.8, marginBottom: 20 }}>Search and tap your commander. That's your display name.</div>
+      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 32, letterSpacing: 3, color: "#e0f2ff", marginBottom: 12, lineHeight: 1.1 }}>WHO'S YOUR COMMANDER?</div>
+      <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.8, marginBottom: 20 }}>Search and tap your commander. That's your display name.</div>
       <input
         value={query}
         onChange={e => {
@@ -275,22 +268,22 @@ function CommanderSearch({ onSelect, color }) {
         }}
         placeholder="Search commander name..."
         autoFocus
-        style={{ width: "100%", background: "#22253a", border: "1px solid #7d82a2", borderRadius: results.length ? "10px 10px 0 0" : 10, padding: "14px", color: "#d4d8eb", fontSize: 14, fontFamily: "inherit" }}
+        style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: results.length ? "10px 10px 0 0" : 10, padding: "14px", color: "#e0f2ff", fontSize: 14, fontFamily: "inherit" }}
       />
       {results.length > 0 && (
-        <div style={{ background: "#22253a", border: "1px solid rgba(26,28,46,0.25)", borderTop: "none", borderRadius: "0 0 10px 10px", overflow: "hidden" }}>
+        <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.08)", borderTop: "none", borderRadius: "0 0 10px 10px", overflow: "hidden" }}>
           {results.map(name => (
             <div
               key={name}
               onClick={() => handleSelect(name)}
-              style={{ padding: "12px 14px", fontSize: 13, color: "#d4d8eb", cursor: "pointer", borderBottom: "1px solid rgba(26,28,46,0.15)" }}
+              style={{ padding: "12px 14px", fontSize: 13, color: "#e0f2ff", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.04)" }}
             >
               {decodeEntities(name)}
             </div>
           ))}
         </div>
       )}
-      {validating && <div style={{ fontSize: 12, color: "#8890b0", marginTop: 8 }}>Checking legality...</div>}
+      {validating && <div style={{ fontSize: 12, color: "#64748b", marginTop: 8 }}>Checking legality...</div>}
       {cmdError && <div style={{ fontSize: 12, color: "#c45c6a", marginTop: 8 }}>{cmdError}</div>}
     </div>
   );
@@ -304,39 +297,39 @@ function EscapeHatch({ onComplete }) {
   if (!show) return (
     <button
       onClick={() => setShow(true)}
-      style={{ background: "none", border: "none", color: "rgba(61,63,90,0.6)", fontSize: 11, fontFamily: "inherit", cursor: "pointer", marginTop: 16, textDecoration: "underline", letterSpacing: 1 }}
+      style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 11, fontFamily: "inherit", cursor: "pointer", marginTop: 16, textDecoration: "underline", letterSpacing: 1 }}
     >
       skip scrycheck — i know my bracket
     </button>
   );
 
   if (bracket !== null) return (
-    <div style={{ marginTop: 16, padding: 16, background: "rgba(26,28,46,0.1)", borderRadius: 12, border: "1px solid rgba(26,28,46,0.2)" }}>
-      <div style={{ fontSize: 10, color: "rgba(61,63,90,0.6)", letterSpacing: 2, marginBottom: 12 }}>WHO'S YOUR COMMANDER?</div>
+    <div style={{ marginTop: 16, padding: 16, background: "rgba(255,255,255,0.04)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" }}>
+      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: 2, marginBottom: 12 }}>WHO'S YOUR COMMANDER?</div>
       <CommanderSearch
         onSelect={(name) => onComplete({ commander: name, power: null, bracket: bracket.b, tier: bracket.label, selfReported: true, vectors: {} })}
         color="#b8a8d8"
       />
-      <button onClick={() => setBracket(null)} style={{ background: "none", border: "none", color: "rgba(61,63,90,0.5)", fontSize: 10, cursor: "pointer", fontFamily: "inherit", marginTop: 12 }}>← back</button>
+      <button onClick={() => setBracket(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.2)", fontSize: 10, cursor: "pointer", fontFamily: "inherit", marginTop: 12 }}>← back</button>
     </div>
   );
 
   return (
-    <div style={{ marginTop: 16, padding: 16, background: "rgba(26,28,46,0.1)", borderRadius: 12, border: "1px solid rgba(26,28,46,0.2)" }}>
-      <div style={{ fontSize: 10, color: "rgba(61,63,90,0.6)", letterSpacing: 2, marginBottom: 12 }}>SELF-REPORTED BRACKET</div>
-      <div style={{ fontSize: 10, color: "rgba(61,63,90,0.5)", marginBottom: 12, lineHeight: 1.6 }}>cool, we trust you. mostly. 🫡</div>
+    <div style={{ marginTop: 16, padding: 16, background: "rgba(255,255,255,0.04)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" }}>
+      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: 2, marginBottom: 12 }}>SELF-REPORTED BRACKET</div>
+      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", marginBottom: 12, lineHeight: 1.6 }}>cool, we trust you. mostly. 🫡</div>
       {[
         { b: 1, label: "Precon" }, { b: 2, label: "Upgraded" }, { b: 3, label: "Optimized" },
         { b: 4, label: "High Power" }, { b: 5, label: "cEDH" },
       ].map(({ b, label }) => (
         <button key={b}
           onClick={() => setBracket({ b, label })}
-          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: "rgba(26,28,46,0.1)", border: "1px solid rgba(26,28,46,0.2)", borderRadius: 8, padding: "10px 14px", marginBottom: 6, cursor: "pointer", fontFamily: "inherit", color: "var(--pc-textPrimary)" }}>
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "10px 14px", marginBottom: 6, cursor: "pointer", fontFamily: "inherit", color: "#e0f2ff" }}>
           <span style={{ fontSize: 12 }}>B{b} · {label}</span>
-          <span style={{ fontSize: 10, color: "rgba(61,63,90,0.5)" }}>→</span>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>→</span>
         </button>
       ))}
-      <button onClick={() => setShow(false)} style={{ background: "none", border: "none", color: "rgba(61,63,90,0.5)", fontSize: 10, cursor: "pointer", fontFamily: "inherit", marginTop: 4 }}>← back</button>
+      <button onClick={() => setShow(false)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.2)", fontSize: 10, cursor: "pointer", fontFamily: "inherit", marginTop: 4 }}>← back</button>
     </div>
   );
 }
@@ -389,8 +382,8 @@ function ThreeBarOnboarding({ session, mySeat, sessionId, onComplete }) {
 
   return (
     <div style={{ animation: "fadeUp 0.4s ease both" }}>
-      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 3, color: "var(--pc-textPrimary)", marginBottom: 6, lineHeight: 1.1 }}>ANALYZE YOUR DECK</div>
-      <div style={{ fontSize: 12, color: "var(--pc-textSecondary)", marginBottom: 24, lineHeight: 1.7 }}>One paste. Thirty seconds.</div>
+      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 3, color: "#e0f2ff", marginBottom: 6, lineHeight: 1.1 }}>ANALYZE YOUR DECK</div>
+      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginBottom: 24, lineHeight: 1.7 }}>One paste. Thirty seconds.</div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {BAR_DEFS.map(({ label, sub }, i) => {
@@ -401,44 +394,44 @@ function ThreeBarOnboarding({ session, mySeat, sessionId, onComplete }) {
             <div key={i}>
               <div style={{
                 display: "flex", alignItems: "center", gap: 14, padding: "16px 18px",
-                background: done ? "rgba(90,170,136,0.1)" : active ? `${myColor}10` : "rgba(26,28,46,0.07)",
-                border: `1.5px solid ${done ? "#5aaa88" : active ? myColor : "rgba(26,28,46,0.15)"}`,
+                background: done ? "rgba(90,170,136,0.08)" : active ? `${myColor}10` : "rgba(255,255,255,0.02)",
+                border: `1.5px solid ${done ? "#5aaa88" : active ? myColor : "rgba(255,255,255,0.06)"}`,
                 borderRadius: 14, transition: "all 0.3s",
               }}>
                 <div style={{
                   width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
-                  background: done ? "#5aaa88" : active ? myColor : "rgba(26,28,46,0.2)",
+                  background: done ? "#5aaa88" : active ? myColor : "rgba(255,255,255,0.08)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 11, color: "#1a1c2e", fontWeight: 700,
+                  fontSize: 11, color: "#1a2744", fontWeight: 700,
                 }}>
                   {done ? "✓" : isAnalyzing ? (
-                    <div style={{ width: 10, height: 10, border: "2px solid rgba(26,28,46,0.3)", borderTop: `2px solid #1a1c2e`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                    <div style={{ width: 10, height: 10, border: "2px solid rgba(26,39,68,0.3)", borderTop: `2px solid #1a2744`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
                   ) : i + 1}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: done ? "#5aaa88" : active ? "var(--pc-textPrimary)" : "rgba(61,63,90,0.5)", letterSpacing: 1 }}>{label}</div>
-                  <div style={{ fontSize: 10, color: "rgba(61,63,90,0.5)", marginTop: 1 }}>{sub}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: done ? "#5aaa88" : active ? "#e0f2ff" : "rgba(255,255,255,0.2)", letterSpacing: 1 }}>{label}</div>
+                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 1 }}>{sub}</div>
                 </div>
-                <div style={{ fontSize: 14, color: done ? "#5aaa88" : active ? myColor : "rgba(26,28,46,0.2)", flexShrink: 0 }}>
+                <div style={{ fontSize: 14, color: done ? "#5aaa88" : active ? myColor : "rgba(255,255,255,0.1)", flexShrink: 0 }}>
                   {done ? "✓" : "·"}
                 </div>
               </div>
 
               {i === 0 && active && !done && (
-                <div style={{ marginTop: 8, padding: "14px 16px", background: "rgba(26,28,46,0.1)", border: `1px solid ${myColor}30`, borderRadius: 12, animation: "fadeUp 0.2s ease both" }}>
+                <div style={{ marginTop: 8, padding: "14px 16px", background: "rgba(255,255,255,0.03)", border: `1px solid ${myColor}30`, borderRadius: 12, animation: "fadeUp 0.2s ease both" }}>
                   <div style={{ display: "flex", gap: 8, marginBottom: deckSiteOpened ? 12 : 0 }}>
                     <button onClick={() => handleOpenDeckSite("https://www.moxfield.com")}
-                      style={{ flex: 1, background: "rgba(26,28,46,0.15)", border: "1px solid rgba(26,28,46,0.25)", borderRadius: 8, padding: "10px", color: "#d4d8eb", fontSize: 12, fontFamily: "inherit", cursor: "pointer" }}>
+                      style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "10px", color: "#e0f2ff", fontSize: 12, fontFamily: "inherit", cursor: "pointer" }}>
                       OPEN MOXFIELD ↗
                     </button>
                     <button onClick={() => handleOpenDeckSite("https://www.archidekt.com")}
-                      style={{ flex: 1, background: "rgba(26,28,46,0.15)", border: "1px solid rgba(26,28,46,0.25)", borderRadius: 8, padding: "10px", color: "#d4d8eb", fontSize: 12, fontFamily: "inherit", cursor: "pointer" }}>
+                      style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "10px", color: "#e0f2ff", fontSize: 12, fontFamily: "inherit", cursor: "pointer" }}>
                       OPEN ARCHIDEKT ↗
                     </button>
                   </div>
                   {deckSiteOpened && (
                     <button onClick={handleContinue}
-                      style={{ width: "100%", background: myColor, border: "none", borderRadius: 8, padding: "12px", color: "#1a1c2e", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", letterSpacing: 1 }}>
+                      style={{ width: "100%", background: myColor, border: "none", borderRadius: 8, padding: "12px", color: "#1a2744", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", letterSpacing: 1 }}>
                       CONTINUE →
                     </button>
                   )}
@@ -446,7 +439,7 @@ function ThreeBarOnboarding({ session, mySeat, sessionId, onComplete }) {
               )}
 
               {i === 1 && active && !done && (
-                <div style={{ marginTop: 8, padding: "14px 16px", background: "rgba(26,28,46,0.1)", border: `1px solid ${myColor}30`, borderRadius: 12, animation: "fadeUp 0.2s ease both" }}>
+                <div style={{ marginTop: 8, padding: "14px 16px", background: "rgba(255,255,255,0.03)", border: `1px solid ${myColor}30`, borderRadius: 12, animation: "fadeUp 0.2s ease both" }}>
                   {error && (
                     <div style={{ marginBottom: 10, padding: "8px 12px", background: "rgba(196,92,106,0.1)", border: "1px solid rgba(196,92,106,0.25)", borderRadius: 8, fontSize: 12, color: "#c45c6a", lineHeight: 1.6 }}>
                       {error}
@@ -459,12 +452,12 @@ function ThreeBarOnboarding({ session, mySeat, sessionId, onComplete }) {
                       onKeyDown={e => e.key === "Enter" && resultInput.trim() && handleResultUrl(resultInput)}
                       placeholder="https://scrycheck.com/deck/..."
                       autoFocus
-                      style={{ flex: 1, background: "#22253a", border: `1px solid ${error ? "#c45c6a" : "#7d82a2"}`, borderRadius: 8, padding: "10px 12px", color: "#d4d8eb", fontSize: 12, fontFamily: "inherit" }}
+                      style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: `1px solid ${error ? "#c45c6a" : "rgba(255,255,255,0.12)"}`, borderRadius: 8, padding: "10px 12px", color: "#e0f2ff", fontSize: 12, fontFamily: "inherit" }}
                     />
                     <button
                       onClick={() => resultInput.trim() && handleResultUrl(resultInput)}
                       disabled={loading || !resultInput.trim()}
-                      style={{ background: loading ? "rgba(76,129,156,0.3)" : resultInput.trim() ? "#4c819c" : "rgba(26,28,46,0.15)", border: "none", borderRadius: 8, padding: "0 16px", color: "#1a1c2e", fontSize: 13, fontWeight: 700, cursor: loading ? "wait" : "pointer", fontFamily: "inherit" }}>
+                      style={{ background: loading ? "rgba(76,129,156,0.3)" : resultInput.trim() ? "#4c819c" : "rgba(255,255,255,0.06)", border: "none", borderRadius: 8, padding: "0 16px", color: "#e0f2ff", fontSize: 13, fontWeight: 700, cursor: loading ? "wait" : "pointer", fontFamily: "inherit" }}>
                       {loading ? "..." : "GO"}
                     </button>
                   </div>
@@ -584,7 +577,7 @@ export default function JoinPage() {
   if (!session) return (
     <PageWrapper>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", gap: 12 }}>
-        <div style={{ color: "#8890b0", fontSize: 13, letterSpacing: 2 }}>LOADING...</div>
+        <div style={{ color: "#475569", fontSize: 13, letterSpacing: 2 }}>LOADING...</div>
       </div>
     </PageWrapper>
   );
@@ -598,7 +591,7 @@ export default function JoinPage() {
         input:focus { outline:none; border-color:#4c819c !important; }
       `}</style>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid rgba(26,28,46,0.2)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <Logo size="sm" />
         <div style={{ fontSize: 12, color: "#b8a8d8", letterSpacing: 3 }}>{sessionId}</div>
       </div>
@@ -609,7 +602,7 @@ export default function JoinPage() {
             {session.players.filter(p => p.status !== "empty").length >= 4 ? (
               <div style={{ color: "#c45c6a", fontSize: 13, textAlign: "center", marginTop: 40 }}>This session is full.</div>
             ) : (
-              <div style={{ color: "#8890b0", fontSize: 13, textAlign: "center", marginTop: 40 }}>Joining session...</div>
+              <div style={{ color: "#475569", fontSize: 13, textAlign: "center", marginTop: 40 }}>Joining session...</div>
             )}
           </div>
         )}
@@ -626,12 +619,12 @@ export default function JoinPage() {
         {step === 4 && (
           <div style={{ animation: "fadeUp 0.4s ease both", textAlign: "center", padding: "32px 0" }}>
             <div style={{ fontSize: 11, color: "#5aaa88", letterSpacing: 2, marginBottom: 20 }}>✓ DECK SUBMITTED</div>
-            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 32, letterSpacing: 3, color: "var(--pc-textPrimary)", marginBottom: 8 }}>WAITING FOR THE POD</div>
-            <div style={{ fontSize: 13, color: "var(--pc-textSecondary)", marginBottom: 28 }}>Results appear automatically when everyone is ready.</div>
-            <div style={{ display: "inline-block", background: "#c8ccdb", borderRadius: 16, padding: 16, marginBottom: 12 }}>
-              <QRCodeSVG value={`https://pod-check.vercel.app/join/${sessionId}`} size={180} bgColor="#c8ccdb" fgColor="#1a1c2e" level="M" />
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 32, letterSpacing: 3, color: "#e0f2ff", marginBottom: 8 }}>WAITING FOR THE POD</div>
+            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 28 }}>Results appear automatically when everyone is ready.</div>
+            <div style={{ display: "inline-block", background: "#e0f2ff", borderRadius: 16, padding: 16, marginBottom: 12 }}>
+              <QRCodeSVG value={`https://pod-check.vercel.app/join/${sessionId}`} size={180} bgColor="#e0f2ff" fgColor="#1a2744" level="M" />
             </div>
-            <div style={{ fontSize: 10, color: "#8890b0", letterSpacing: 2, marginBottom: 28 }}>
+            <div style={{ fontSize: 10, color: "#475569", letterSpacing: 2, marginBottom: 28 }}>
               SCAN TO JOIN ·{" "}
               <span style={{ color: "#b1d7e1", fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: 4 }}>
                 {sessionId}
@@ -647,7 +640,7 @@ export default function JoinPage() {
           <div style={{ animation: "fadeUp 0.5s ease both" }}>
             <BigVerdict players={session.players} mode={session.mode} />
             <div style={{ textAlign: "center", marginTop: 24 }}>
-              <button onClick={() => navigate("/")} style={{ ...btnStyle, background: "rgba(26,28,46,0.15)", color: "#d4d8eb", width: "100%" }}>
+              <button onClick={() => navigate("/")} style={{ ...btnStyle, background: "rgba(255,255,255,0.08)", color: "#e0f2ff", width: "100%" }}>
                 DONE — BACK TO HOME
               </button>
             </div>
@@ -659,12 +652,12 @@ export default function JoinPage() {
 }
 
 const inputStyle = {
-  width: "100%", background: "#22253a", border: "1px solid #7d82a2",
-  borderRadius: 10, padding: "12px 14px", color: "#b1d7e1", fontSize: 13,
+  width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)",
+  borderRadius: 10, padding: "12px 14px", color: "#e0f2ff", fontSize: 13,
   fontFamily: "inherit", transition: "border-color 0.2s",
 };
 const btnStyle = {
-  border: "none", borderRadius: 10, padding: 14, color: "#1a1c2e", fontSize: 13,
+  border: "none", borderRadius: 10, padding: 14, color: "#1a2744", fontSize: 13,
   fontWeight: 700, fontFamily: "inherit", cursor: "pointer", letterSpacing: 1,
   transition: "opacity 0.2s", display: "block",
 };

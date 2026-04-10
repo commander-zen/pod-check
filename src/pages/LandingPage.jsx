@@ -67,7 +67,7 @@ export default function LandingPage() {
 
           <Logo size="lg" />
 
-          <p style={{ color: "#8890b0", fontSize: 13, textAlign: "center", lineHeight: 1.8, marginTop: -8 }}>
+          <p style={{ color: "#475569", fontSize: 13, textAlign: "center", lineHeight: 1.8, marginTop: -8 }}>
             Powered by <a href="https://scrycheck.com" target="_blank" rel="noopener noreferrer" style={{ color: "#b8a8d8", textDecoration: "none" }}>ScryCheck</a>.
           </p>
 
@@ -92,14 +92,14 @@ export default function LandingPage() {
 
           {/* Divider */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
-            <div style={{ flex: 1, height: 1, background: "rgba(26,28,46,0.2)" }} />
-            <div style={{ fontSize: 11, color: "#3d3f5a", letterSpacing: 2 }}>OR</div>
-            <div style={{ flex: 1, height: 1, background: "rgba(26,28,46,0.2)" }} />
+            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
+            <div style={{ fontSize: 11, color: "#334155", letterSpacing: 2 }}>OR</div>
+            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
           </div>
 
           {/* Join by code */}
           <div style={{ width: "100%" }}>
-            <div style={{ fontSize: 10, color: "#8890b0", letterSpacing: 2, marginBottom: 10, textAlign: "center" }}>JOIN A TABLE</div>
+            <div style={{ fontSize: 10, color: "#475569", letterSpacing: 2, marginBottom: 10, textAlign: "center" }}>JOIN A TABLE</div>
             <input
               value={code}
               onChange={e => {
@@ -111,11 +111,11 @@ export default function LandingPage() {
               maxLength={30}
               style={{
                 width: "100%",
-                background: "#22253a",
-                border: `1px solid ${codeError ? "#c45c6a" : "#7d82a2"}`,
+                background: "rgba(255,255,255,0.05)",
+                border: `1px solid ${codeError ? "#c45c6a" : "rgba(255,255,255,0.12)"}`,
                 borderRadius: 12,
                 padding: "16px",
-                color: "#b1d7e1",
+                color: "#e0f2ff",
                 fontSize: 28,
                 fontFamily: "'Bebas Neue', sans-serif",
                 letterSpacing: 10,
@@ -130,10 +130,10 @@ export default function LandingPage() {
               disabled={checking || !code.trim()}
               style={{
                 width: "100%",
-                background: code.trim() ? "rgba(76,129,156,0.15)" : "rgba(26,28,46,0.1)",
-                border: `1px solid ${code.trim() ? "rgba(76,129,156,0.3)" : "rgba(26,28,46,0.15)"}`,
+                background: code.trim() ? "rgba(76,129,156,0.15)" : "rgba(255,255,255,0.04)",
+                border: `1px solid ${code.trim() ? "rgba(76,129,156,0.3)" : "rgba(255,255,255,0.08)"}`,
                 borderRadius: 12, padding: "14px",
-                color: code.trim() ? "#4c819c" : "#3d3f5a",
+                color: code.trim() ? "#7ba7bb" : "#334155",
                 fontSize: 13, fontWeight: 700, fontFamily: "'DM Mono', monospace",
                 cursor: code.trim() ? "pointer" : "not-allowed", letterSpacing: 1,
                 transition: "all 0.2s",
