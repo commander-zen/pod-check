@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { makeSessionId, BRACKET_META } from "../lib/ui.jsx";
+import { makeSessionId, BRACKET_META, useAuth } from "../lib/ui.jsx";
 import { supabase } from "../lib/supabase.js";
 
 // ── Tokens ────────────────────────────────────────────────────────────────────
@@ -30,19 +30,13 @@ function writeSessionId(id) {
   else localStorage.removeItem("podcheck_session");
 }
 
-async function fetchCommanderData(name) {
-  try {
-    const r = await fetch(
-      `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`,
-      { headers: { "User-Agent": "PodCheck/1.0 (pod-check.vercel.app)" } }
-    );
-    const d = await r.json();
-    if (d.object !== "card") return null;
-    return {
-      artCrop:       d.image_uris?.art_crop ?? d.card_faces?.[0]?.image_uris?.art_crop ?? null,
-      colorIdentity: d.color_identity ?? [],
-    };
-  } catch { return null; }
+function relativeTime(iso) {
+  if (!iso) return null;
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
 }
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
@@ -141,216 +135,264 @@ function ShellHeader({ deck }) {
   );
 }
 
-// ── Bracket pips ──────────────────────────────────────────────────────────────
-function BracketPips({ bracket }) {
-  const filled = Math.min(bracket ?? 0, 4);
-  const color  = BRACKET_META[Math.min(bracket, 4)]?.color ?? ACTIVE;
+// ── Deck row ──────────────────────────────────────────────────────────────────
+function DeckRow({ deck, isFirst, isSelected, onSelect, pendingDelete, onDelete, onDeleteConfirm }) {
+  const artUrl   = deck.commander_card?.image_uris?.art_crop ?? null;
+  const isPending = pendingDelete === deck.id;
+  const cardCount = Array.isArray(deck.pile) ? deck.pile.length : null;
+  const relTime  = relativeTime(deck.last_opened_at ?? deck.scrycheck_at ?? null);
+
   return (
-    <div style={{ display: "flex", gap: 5 }}>
-      {[1,2,3,4].map(i => (
-        <div key={i} style={{
-          flex: 1, height: 4, borderRadius: 2,
-          background: i <= filled ? color : BORDER,
-          transition: "background 0.3s",
-        }} />
-      ))}
+    <div
+      onClick={() => onSelect(deck)}
+      style={{
+        display: "flex", alignItems: "center", gap: 12,
+        minHeight: 72, padding: "10px 0 10px 14px",
+        background: isSelected ? `${PRIMARY}0f` : PANEL,
+        border: `1px solid ${isSelected ? PRIMARY : BORDER}`,
+        borderLeft: `2px solid ${isFirst || isSelected ? PRIMARY : BORDER}`,
+        borderRadius: 4, cursor: "pointer",
+        transition: "all 0.15s", boxSizing: "border-box",
+      }}
+    >
+      {/* Art thumbnail */}
+      <div style={{
+        width: 48, height: 34, borderRadius: 3, overflow: "hidden",
+        flexShrink: 0, background: BORDER,
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        {artUrl
+          ? <img src={artUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          : <span style={{ fontSize: 18, color: MUTED }}>?</span>
+        }
+      </div>
+
+      {/* Info */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: TEXT,
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          marginBottom: 5,
+        }}>
+          {deck.commander_name || "Unknown"}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          {deck.bracket != null ? (
+            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#a78bfa" }}>
+              B{deck.bracket}{deck.power != null ? ` · ${Number(deck.power).toFixed(1)}` : ""}
+            </span>
+          ) : (
+            <span style={{
+              fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: "#fb923c",
+              border: "1px solid #fb923c50", borderRadius: 3, padding: "2px 5px", letterSpacing: 1,
+            }}>
+              UNRATED
+            </span>
+          )}
+          {cardCount != null && (
+            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: MUTED }}>
+              · {cardCount} cards
+            </span>
+          )}
+          {relTime && (
+            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: MUTED }}>
+              · {relTime}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Delete */}
+      <button
+        onClick={e => { e.stopPropagation(); isPending ? onDeleteConfirm(deck.id) : onDelete(deck.id); }}
+        style={{
+          background: "none", border: "none", cursor: "pointer",
+          flexShrink: 0, minWidth: 44, minHeight: 44,
+          display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
+          color: isPending ? DANGER : MUTED,
+          fontFamily: "'IBM Plex Mono', monospace",
+          padding: 4, lineHeight: 1.3,
+        }}
+      >
+        {isPending ? (
+          <>
+            <span style={{ fontSize: 8, letterSpacing: 0.5 }}>TAP AGAIN</span>
+            <span style={{ fontSize: 8, letterSpacing: 0.5 }}>TO REMOVE</span>
+          </>
+        ) : (
+          <span style={{ fontSize: 16 }}>×</span>
+        )}
+      </button>
     </div>
   );
 }
 
-// ── MY DECK tab ───────────────────────────────────────────────────────────────
-function MyDeckTab({ deck, onDeckChange, onEnterPod }) {
-  const [urlInput, setUrlInput] = useState(deck?.scryCheckUrl ?? "");
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState(null);
+// ── MY DECKS page ─────────────────────────────────────────────────────────────
+function MyDecksPage({ user, onDeckChange, onEnterPod }) {
+  const [decks,         setDecks]         = useState([]);
+  const [selected,      setSelected]      = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const isAnon = !user || user.is_anonymous;
 
-  const handleScrape = useCallback(async (rawUrl) => {
-    const clean = rawUrl.trim();
-    if (!clean.startsWith("https://scrycheck.com/deck/")) {
-      setError("Paste your ScryCheck result URL — looks like scrycheck.com/deck/…");
+  useEffect(() => {
+    if (isAnon) {
+      const raw = localStorage.getItem("cardstock_last_deck");
+      if (raw) {
+        try {
+          const p = JSON.parse(raw);
+          setDecks([{ ...p, id: "__local__", commander_name: p.commander_name ?? p.commander }]);
+        } catch { setDecks([]); }
+      } else {
+        setDecks([]);
+      }
       return;
     }
-    setLoading(true); setError(null);
-    try {
-      const res  = await fetch(`/api/scrape?url=${encodeURIComponent(clean)}`);
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Scrape failed");
 
-      const cmdData = json.commander ? await fetchCommanderData(json.commander) : null;
-      const newDeck = {
-        ...json,
-        scryCheckUrl:  clean,
-        artCrop:       cmdData?.artCrop       ?? null,
-        colorIdentity: cmdData?.colorIdentity ?? [],
-      };
-      onDeckChange(newDeck);
-    } catch (e) {
-      setError(e.message);
-    } finally { setLoading(false); }
-  }, [onDeckChange]);
+    supabase
+      .from("decks")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("last_opened_at", { ascending: false })
+      .then(({ data }) => setDecks(data ?? []));
 
-  const bMeta = deck?.bracket ? BRACKET_META[Math.min(deck.bracket, 4)] : null;
+    const refetch = () =>
+      supabase
+        .from("decks")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("last_opened_at", { ascending: false })
+        .then(({ data }) => setDecks(data ?? []));
+
+    const channel = supabase
+      .channel("my-decks")
+      .on("postgres_changes", {
+        event: "*", schema: "public", table: "decks",
+        filter: `user_id=eq.${user.id}`,
+      }, refetch)
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [user]);
+
+  const handleDeleteInit    = useCallback((id) => setPendingDelete(id), []);
+  const handleDeleteConfirm = useCallback(async (id) => {
+    setPendingDelete(null);
+    if (id === "__local__") {
+      localStorage.removeItem("cardstock_last_deck");
+      setDecks([]);
+    } else {
+      await supabase.from("decks").delete().eq("id", id);
+      setDecks(prev => prev.filter(d => d.id !== id));
+    }
+    setSelected(prev => (prev?.id === id ? null : prev));
+  }, []);
+
+  const handleUseInPod = useCallback(() => {
+    if (!selected) return;
+    onDeckChange({
+      commander:     selected.commander_name,
+      power:         selected.power         ?? null,
+      bracket:       selected.bracket       ?? null,
+      tier:          selected.tier          ?? null,
+      scryCheckUrl:  selected.scrycheck_url ?? null,
+      artCrop:       selected.commander_card?.image_uris?.art_crop ?? null,
+      colorIdentity: selected.commander_card?.color_identity       ?? [],
+      vectors:       {},
+    });
+    onEnterPod();
+  }, [selected, onDeckChange, onEnterPod]);
 
   return (
     <div style={{ padding: "18px 16px", maxWidth: 480, margin: "0 auto" }}>
-      {deck ? (
-        <>
-          {/* Loaded status row */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 10,
-            padding: "10px 14px",
-            background: `${SUCCESS}0f`,
-            border: `1px solid ${SUCCESS}30`,
-            borderRadius: 12, marginBottom: 14,
-          }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: SUCCESS, flexShrink: 0 }} />
-            <div style={{
-              fontFamily: "'IBM Plex Mono', monospace",
-              fontSize: 11, color: SUCCESS, letterSpacing: 1.5, flex: 1,
-            }}>
-              LOADED
-            </div>
-            <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: TEXT }}>
-              {deck.power != null ? `${deck.power.toFixed(1)} · ` : ""}{`B${deck.bracket}`}
-            </div>
-          </div>
-
-          {/* Bracket pip bar */}
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: MUTED, letterSpacing: 1.5 }}>
-                BRACKET
-              </span>
-              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: bMeta?.color ?? ACTIVE }}>
-                {bMeta?.label ?? `B${deck.bracket}`}
-              </span>
-            </div>
-            <BracketPips bracket={deck.bracket} />
-          </div>
-
-          {/* Commander pill */}
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: 7,
-            padding: "5px 12px",
-            background: PANEL, border: `1px solid ${BORDER}`,
-            borderRadius: 20, marginBottom: 22,
-          }}>
-            <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 14, letterSpacing: 2, color: TEXT }}>
-              {deck.commander}
-            </span>
-            {(deck.colorIdentity ?? []).map(c => (
-              <div key={c} style={{ width: 8, height: 8, borderRadius: "50%", background: COLOR_DOT[c] ?? "#888", flexShrink: 0 }} />
-            ))}
-          </div>
-        </>
-      ) : (
-        <div style={{ marginBottom: 20 }}>
-          <div style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: 28, letterSpacing: 3, color: TEXT, marginBottom: 6, lineHeight: 1.1,
-          }}>
-            LOAD YOUR DECK
-          </div>
-          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: MUTED, lineHeight: 1.8 }}>
-            Paste your{" "}
-            <a href="https://scrycheck.com" target="_blank" rel="noopener noreferrer" style={{ color: PRIMARY, textDecoration: "none" }}>
-              ScryCheck
-            </a>
-            {" "}result URL to build your deck profile.
-          </div>
+      {/* Header */}
+      <div style={{
+        display: "flex", alignItems: "baseline", justifyContent: "space-between",
+        marginBottom: 16,
+      }}>
+        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 3, color: TEXT }}>
+          MY DECKS
         </div>
-      )}
-
-      {/* ScryCheck URL input — always visible */}
-      <div>
-        <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: MUTED, letterSpacing: 1.5, marginBottom: 8 }}>
-          {deck ? "UPDATE — SCRYCHECK URL" : "SCRYCHECK RESULT URL"}
+        <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: MUTED }}>
+          {decks.length} saved
         </div>
-        {error && (
-          <div style={{
-            padding: "8px 12px", background: `${DANGER}15`, border: `1px solid ${DANGER}40`,
-            borderRadius: 8, fontSize: 12, color: DANGER,
-            marginBottom: 8, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.5,
-          }}>
-            {error}
-          </div>
-        )}
-        <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-          <input
-            value={urlInput}
-            onChange={e => { setUrlInput(e.target.value); setError(null); }}
-            onKeyDown={e => e.key === "Enter" && urlInput.trim() && handleScrape(urlInput)}
-            placeholder="https://scrycheck.com/deck/…"
-            style={{
-              flex: 1, background: PANEL,
-              border: `1px solid ${error ? DANGER : BORDER}`,
-              borderRadius: 10, padding: "12px 14px",
-              color: TEXT, fontSize: 13,
-              fontFamily: "'IBM Plex Mono', monospace",
-              transition: "border-color 0.2s",
-            }}
-          />
-          <button
-            onClick={() => urlInput.trim() && handleScrape(urlInput)}
-            disabled={loading || !urlInput.trim()}
-            style={{
-              background: loading ? `${PRIMARY}40` : urlInput.trim() ? PRIMARY : BORDER,
-              border: "none", borderRadius: 10, padding: "0 18px",
-              color: loading ? `${TEXT}80` : urlInput.trim() ? BG : MUTED,
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: 14, letterSpacing: 1.5,
-              cursor: loading ? "wait" : urlInput.trim() ? "pointer" : "default",
-              flexShrink: 0, transition: "all 0.2s",
-            }}
-          >
-            {loading ? "…" : "GO"}
-          </button>
-        </div>
-        {!deck && (
-          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-            <a
-              href="https://www.moxfield.com" target="_blank" rel="noopener noreferrer"
-              style={{
-                flex: 1, display: "block", padding: "10px",
-                background: `${PANEL}`, border: `1px solid ${BORDER}`,
-                borderRadius: 8, color: TEXT, fontSize: 12, textAlign: "center",
-                fontFamily: "'IBM Plex Mono', monospace", letterSpacing: 1,
-                textDecoration: "none", transition: "border-color 0.2s",
-              }}
-            >
-              MOXFIELD ↗
-            </a>
-            <a
-              href="https://www.archidekt.com" target="_blank" rel="noopener noreferrer"
-              style={{
-                flex: 1, display: "block", padding: "10px",
-                background: `${PANEL}`, border: `1px solid ${BORDER}`,
-                borderRadius: 8, color: TEXT, fontSize: 12, textAlign: "center",
-                fontFamily: "'IBM Plex Mono', monospace", letterSpacing: 1,
-                textDecoration: "none", transition: "border-color 0.2s",
-              }}
-            >
-              ARCHIDEKT ↗
-            </a>
-          </div>
-        )}
       </div>
 
-      {/* ENTER POD CTA */}
-      {deck && (
-        <button
-          onClick={onEnterPod}
-          style={{
-            width: "100%", padding: "15px 16px", marginTop: 10,
-            background: `linear-gradient(135deg, ${PRIMARY} 0%, ${ACTIVE} 100%)`,
-            border: "none", borderRadius: 14,
-            color: BG,
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: 18, letterSpacing: 3, cursor: "pointer",
-          }}
-        >
-          ENTER POD →
-        </button>
+      {decks.length === 0 ? (
+        <div style={{
+          textAlign: "center", padding: "40px 20px",
+          background: PANEL, border: `1px solid ${BORDER}`, borderRadius: 4,
+        }}>
+          <div style={{
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: 11, color: MUTED, letterSpacing: 1.5, marginBottom: 10,
+          }}>
+            NO DECKS SAVED YET
+          </div>
+          <div style={{
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: 11, color: MUTED, lineHeight: 1.9,
+            marginBottom: isAnon ? 24 : 0,
+          }}>
+            Submit a deck in the pod flow<br />to save it here.
+          </div>
+          {isAnon && (
+            <button style={{
+              background: "transparent", border: `1px solid ${PRIMARY}`,
+              borderRadius: 4, padding: "10px 18px",
+              color: PRIMARY, fontFamily: "'IBM Plex Mono', monospace",
+              fontSize: 11, letterSpacing: 1.5, cursor: "pointer",
+            }}>
+              SIGN IN TO SYNC ACROSS DEVICES
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+            {decks.map((d, i) => (
+              <DeckRow
+                key={d.id ?? i}
+                deck={d}
+                isFirst={i === 0}
+                isSelected={selected?.id === d.id}
+                onSelect={setSelected}
+                pendingDelete={pendingDelete}
+                onDelete={handleDeleteInit}
+                onDeleteConfirm={handleDeleteConfirm}
+              />
+            ))}
+          </div>
+
+          {selected && (
+            <button
+              onClick={handleUseInPod}
+              style={{
+                width: "100%", padding: "15px 16px",
+                background: `linear-gradient(135deg, ${PRIMARY} 0%, ${ACTIVE} 100%)`,
+                border: "none", borderRadius: 4,
+                color: BG, fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: 18, letterSpacing: 3, cursor: "pointer",
+                animation: "fadeUp 0.15s ease both",
+              }}
+            >
+              USE IN POD →
+            </button>
+          )}
+
+          {isAnon && (
+            <div style={{ marginTop: 16, textAlign: "center" }}>
+              <button style={{
+                background: "transparent", border: `1px solid ${PRIMARY}`,
+                borderRadius: 4, padding: "10px 18px",
+                color: PRIMARY, fontFamily: "'IBM Plex Mono', monospace",
+                fontSize: 11, letterSpacing: 1.5, cursor: "pointer",
+              }}>
+                SIGN IN TO SYNC ACROSS DEVICES
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -672,6 +714,7 @@ export default function PersistentShell() {
   const [tab,  setTab]  = useState("deck");
   const [deck, setDeck] = useState(readDeck);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleDeckChange = useCallback((newDeck) => {
     setDeck(newDeck);
@@ -694,7 +737,7 @@ export default function PersistentShell() {
 
       <div style={{ flex: 1, overflowY: "auto" }}>
         {tab === "deck"
-          ? <MyDeckTab deck={deck} onDeckChange={handleDeckChange} onEnterPod={() => setTab("pod")} />
+          ? <MyDecksPage user={user} onDeckChange={handleDeckChange} onEnterPod={() => setTab("pod")} />
           : <PodTab deck={deck} navigate={navigate} />
         }
       </div>
