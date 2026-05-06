@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase.js";
-import { COLORS, BRACKET_META, PageWrapper, Logo, SessionCodeCard } from "../lib/ui.jsx";
+import { COLORS, BRACKET_META, PageWrapper, Logo, SessionCodeCard, useAuth, usePodPresence } from "../lib/ui.jsx";
+import SavedDeckPicker from "../components/SavedDeckPicker.jsx";
 import { QRCodeSVG } from "qrcode.react";
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
@@ -482,6 +483,27 @@ function ThreeBarOnboarding({ session, mySeat, sessionId, onComplete }) {
   );
 }
 
+// ─── saveDeckToProfile ────────────────────────────────────────────────────────
+async function saveDeckToProfile(deckData, scrycheckUrl, user) {
+  const payload = {
+    commander_name: deckData.commander,
+    power: deckData.power,
+    bracket: deckData.bracket,
+    tier: deckData.tier,
+    scrycheck_url: scrycheckUrl,
+    scrycheck_at: new Date().toISOString(),
+    name: deckData.commander,
+  }
+  localStorage.setItem('cardstock_last_deck', JSON.stringify(payload))
+  if (user && !user.is_anonymous) {
+    await supabase.from('decks').insert({
+      ...payload,
+      id: crypto.randomUUID(),
+      user_id: user.id
+    })
+  }
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function JoinPage() {
   const { sessionId } = useParams();
@@ -493,6 +515,10 @@ export default function JoinPage() {
   const [step, setStep] = useState(1);
   const [mySeat, setMySeat] = useState(null);
   const [checkedStorage, setCheckedStorage] = useState(false);
+  const [showPicker, setShowPicker] = useState(true);
+  const { user } = useAuth();
+  const myDeckData = mySeat !== null ? session?.players[mySeat]?.deckData : null;
+  usePodPresence(user, myDeckData);
 
   useEffect(() => {
     async function load() {
@@ -565,7 +591,8 @@ export default function JoinPage() {
     await supabase.from("sessions").update({ data: ready }).eq("id", sessionId);
     setSession(ready);
     setStep(4);
-  }, [session, mySeat, sessionId]);
+    saveDeckToProfile(deckData, deckData.scrychecUrl ?? null, user).catch(() => {});
+  }, [session, mySeat, sessionId, user]);
 
   // If the shell pre-loaded deck data was passed via router state, skip ThreeBarOnboarding
   // and submit immediately when we reach step 3 (seat claimed, session ready).
@@ -636,12 +663,18 @@ export default function JoinPage() {
         )}
 
         {step === 3 && mySeat !== null && (
-          <ThreeBarOnboarding
-            session={session}
-            mySeat={mySeat}
-            sessionId={sessionId}
-            onComplete={handleThreeBarComplete}
-          />
+          showPicker
+            ? <SavedDeckPicker
+                user={user}
+                onUse={handleThreeBarComplete}
+                onSwitch={() => setShowPicker(false)}
+              />
+            : <ThreeBarOnboarding
+                session={session}
+                mySeat={mySeat}
+                sessionId={sessionId}
+                onComplete={handleThreeBarComplete}
+              />
         )}
 
         {step === 4 && (

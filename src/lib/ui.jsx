@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { supabase } from "./supabase.js";
 
 export const COLORS = ["#d4a0c0", "#c4915a", "#5aaa88", "#7ba7bb"];
 
@@ -164,6 +165,59 @@ export function Logo({ size = "md" }) {
       )}
     </div>
   );
+}
+
+export function useAuth() {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        const u = session?.user ?? null
+        setUser(u)
+        if (event === 'SIGNED_IN' && u && !u.is_anonymous) {
+          const anonSessionId = localStorage.getItem('cardstock_session_id')
+          if (anonSessionId) {
+            await supabase.rpc('migrate_anonymous_decks', { p_session_id: anonSessionId })
+            localStorage.removeItem('cardstock_session_id')
+          }
+        }
+      }
+    )
+    return () => subscription.unsubscribe()
+  }, [])
+
+  return { user, loading, isAnonymous: user?.is_anonymous ?? true }
+}
+
+export function usePodPresence(user, deckData) {
+  useEffect(() => {
+    if (!user || !deckData) return
+
+    const upsertPresence = async () => {
+      await supabase.from('pod_presence').upsert({
+        id: user.id,
+        user_id: user.id,
+        commander_name: deckData.commander,
+        bracket: deckData.bracket,
+        power: deckData.power,
+        reveal_commander: true,
+        last_seen: new Date().toISOString()
+      }, { onConflict: 'user_id' })
+    }
+
+    upsertPresence()
+    const interval = setInterval(upsertPresence, 30000)
+    return () => {
+      clearInterval(interval)
+      supabase.from('pod_presence').delete().eq('user_id', user.id)
+    }
+  }, [user, deckData])
 }
 
 export function SessionCode({ code }) {

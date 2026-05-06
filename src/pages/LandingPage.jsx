@@ -1,7 +1,87 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase.js";
-import { makeSessionId, newSession, PageWrapper, ScryCheckCredit, Logo } from "../lib/ui.jsx";
+import { sendMagicLink, signOut } from "../lib/supabase.js";
+import { makeSessionId, newSession, PageWrapper, ScryCheckCredit, Logo, useAuth } from "../lib/ui.jsx";
+
+function MagicLinkAuth() {
+  const { user, isAnonymous } = useAuth()
+  const [email, setEmail] = useState("")
+  const [sent, setSent] = useState(false)
+  const [error, setError] = useState(null)
+
+  const handleSend = useCallback(async () => {
+    setError(null)
+    try {
+      await sendMagicLink(email)
+      setSent(true)
+    } catch (e) {
+      setError(e.message || "Failed to send link")
+    }
+  }, [email])
+
+  if (!isAnonymous && user) {
+    return (
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: "#a78bfa", marginBottom: 8 }}>
+          {user.email}
+        </div>
+        <button
+          onClick={() => signOut()}
+          style={{
+            background: "transparent", border: "1px solid #5b8fff", borderRadius: 4,
+            padding: "0 16px", minHeight: 44, color: "#5b8fff",
+            fontFamily: "IBM Plex Mono, monospace", fontSize: 12, fontWeight: 700,
+            letterSpacing: 1, cursor: "pointer",
+          }}
+        >
+          SIGN OUT
+        </button>
+      </div>
+    )
+  }
+
+  if (sent) {
+    return (
+      <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 13, color: "#34d399", textAlign: "center", letterSpacing: 1 }}>
+        CHECK YOUR EMAIL ✓
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ width: "100%" }}>
+      {error && <div style={{ color: "#ff4d6d", fontSize: 12, marginBottom: 8, textAlign: "center", fontFamily: "IBM Plex Mono, monospace" }}>{error}</div>}
+      <div style={{ display: "flex", gap: 8 }}>
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && email.trim() && handleSend()}
+          placeholder="email@example.com"
+          style={{
+            flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid #5b8fff",
+            borderRadius: 4, padding: "0 12px", minHeight: 44, color: "#e0f2ff",
+            fontFamily: "IBM Plex Mono, monospace", fontSize: 13,
+          }}
+        />
+        <button
+          onClick={handleSend}
+          disabled={!email.trim()}
+          style={{
+            background: "transparent", border: "1px solid #5b8fff", borderRadius: 4,
+            padding: "0 14px", minHeight: 44, color: "#5b8fff",
+            fontFamily: "IBM Plex Mono, monospace", fontSize: 11, fontWeight: 700,
+            letterSpacing: 1, cursor: email.trim() ? "pointer" : "not-allowed",
+            whiteSpace: "nowrap",
+          }}
+        >
+          SAVE YOUR DECKS
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -142,6 +222,8 @@ export default function LandingPage() {
               {checking ? "CHECKING..." : "JOIN SESSION →"}
             </button>
           </div>
+
+          <MagicLinkAuth />
 
           <ScryCheckCredit />
         </div>
