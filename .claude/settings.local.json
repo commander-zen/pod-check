@@ -15,7 +15,9 @@
       "Bash(where gh:*)",
       "Bash(powershell -Command \"Get-Command gh -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")",
       "Bash(grep -rh \"#[0-9a-fA-F]\\\\{3,6\\\\}\\\\b\" \"c:\\\\Users\\\\beine\\\\OneDrive\\\\Desktop\\\\my docs\\\\pod-check\\\\src\" --include=\"*.jsx\" --include=\"*.js\")",
-      "Bash(grep -o \"#[0-9a-fA-F]\\\\{3,6\\\\}\")"
+      "Bash(grep -o \"#[0-9a-fA-F]\\\\{3,6\\\\}\")",
+      "Bash(Get-ChildItem -Recurse -File -Filter \"*.jsx\")",
+      "Bash(Select-Object -First 20 -ExpandProperty FullName)"
     ]
   }
 }

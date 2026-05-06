@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { makeSessionId, newSession, BRACKET_META } from "../lib/ui.jsx";
+import { makeSessionId, BRACKET_META } from "../lib/ui.jsx";
 import { supabase } from "../lib/supabase.js";
 
 // ── Tokens ────────────────────────────────────────────────────────────────────
@@ -400,10 +400,7 @@ function PodTab({ deck, navigate }) {
   const handleHost = useCallback(async () => {
     setHosting(true); setHostError(null);
     try {
-      const id   = makeSessionId();
-      const data = newSession(id, "podcheck");
-      const { error } = await supabase.from("sessions").insert({ id, data });
-      if (error) throw error;
+      const id = makeSessionId();
       writeSessionId(id);
       navigate(`/join/${id}?host=1`, { state: deck ? { deckData: deck } : undefined });
     } catch (e) {

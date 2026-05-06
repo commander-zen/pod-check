@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase.js";
 import { sendMagicLink, signOut } from "../lib/supabase.js";
-import { makeSessionId, newSession, PageWrapper, ScryCheckCredit, Logo, useAuth } from "../lib/ui.jsx";
+import { makeSessionId, PageWrapper, ScryCheckCredit, Logo, useAuth } from "../lib/ui.jsx";
 
 function MagicLinkAuth() {
   const { user, isAnonymous } = useAuth()
@@ -95,9 +95,6 @@ export default function LandingPage() {
     setCreating(true); setError(null);
     try {
       const id = makeSessionId();
-      const data = newSession(id, 'podcheck');
-      const { error: err } = await supabase.from("sessions").insert({ id, data });
-      if (err) throw err;
       navigate(`/join/${id}?host=1`);
     } catch (e) {
       setError(e.message || "Failed to create session.");
